@@ -19,10 +19,10 @@ module Blackjack
 
       2.times do
         players.each do |player|
-          player.deal(self.deck.pop)
+          player.deal(self.deck.cards.pop)
         end
 
-        dealer.deal(self.deck.pop)
+        dealer.deal(self.deck.cards.pop)
       end
     end
 
@@ -36,7 +36,9 @@ module Blackjack
       self.players      = []
 
       # initialize Player objects for later use
-      player_count.times  { self.players << Player.new }
+      player_count.times do
+        self.players << Player.new
+      end
     end
   end
 
@@ -57,7 +59,7 @@ module Blackjack
   class Hand
     attr_accessor :cards
 
-    def initalize
+    def initialize
       self.cards = []
     end
 
@@ -130,8 +132,6 @@ module Blackjack
   end
 end
 
-
-
 player_count  = 3
 deck_count    = 4
 
@@ -139,5 +139,5 @@ game = Blackjack::Game.new(player_count, deck_count)
 
 table = game.deal
 
-dealer = table[table.count - 1]
-p dealer
+dealer = game.table.dealer.hand
+p "dealer's cards: #{dealer.cards}"
