@@ -14,21 +14,16 @@ module Blackjack
     end
 
     def deal
-      total_players = self.table.player_count + 1
+      players = table.players
+      dealer  = table.dealer
 
-      player_cards = []
-
-      total_players.times do |players|
-        player_cards[pc] = {}
-      end
-
-      2.times do |c|
-        player_count.times do |i|
-          player_cards[i].merge!({(c + 1) => shoe.pop})
+      2.times do
+        players.each do |player|
+          player.deal(self.deck.pop)
         end
-      end
 
-      player_cards
+        dealer.deal(self.deck.pop)
+      end
     end
 
   end
@@ -51,6 +46,10 @@ module Blackjack
     def initialize
       self.hand = Hand.new
     end
+
+    def deal(card = {})
+      self.hand.add card
+    end
   end
 
   class Dealer < Player; end
@@ -59,7 +58,11 @@ module Blackjack
     attr_accessor :cards
 
     def initalize
-      self.cards = {}
+      self.cards = []
+    end
+
+    def add(card = {})
+      self.cards << card
     end
   end
 
@@ -134,7 +137,7 @@ deck_count    = 4
 
 game = Blackjack::Game.new(player_count, deck_count)
 
-table = deal_cards(game.deck, game.table.player_count)
+table = game.deal
 
 dealer = table[table.count - 1]
 p dealer
