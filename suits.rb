@@ -2,15 +2,16 @@
 
 require 'pp'
 
-MAX_INT = (2 ** (0.size * 8 - 1))
+MAX_INT = (2 ** (0.size * 8 - 1)) # this is used when 'randomly' shuffling the deck
 
 module Blackjack
+
   class Game
     attr_accessor :deck, :table
 
     def initialize(players = 1, decks = 1)
-      self.deck = Deck.new(decks)
-      self.table = Table.new(players)
+      self.deck   = Deck.new(decks)
+      self.table  = Table.new(players)
     end
 
     def deal
@@ -19,10 +20,10 @@ module Blackjack
 
       2.times do
         players.each do |player|
-          player.deal(self.deck.cards.pop)
+          player.dealt self.deck.deal_card
         end
 
-        dealer.deal(self.deck.cards.pop)
+        dealer.dealt self.deck.deal_card
       end
     end
 
@@ -32,10 +33,10 @@ module Blackjack
     attr_accessor :players, :dealer
 
     def initialize(player_count = 1)
-      self.dealer       = Dealer.new
-      self.players      = []
+      self.dealer   = Dealer.new
+      self.players  = []
 
-      # initialize Player objects for later use
+      # go ahead and initialize Player objects for later use
       player_count.times do
         self.players << Player.new
       end
@@ -49,7 +50,7 @@ module Blackjack
       self.hand = Hand.new
     end
 
-    def deal(card = {})
+    def dealt(card = {})
       self.hand.add card
     end
   end
@@ -75,13 +76,42 @@ module Blackjack
       self.deck_count = decks if decks >= 1
 
       if self.deck_count
-        self.cards = shuffle(build_decks(decks), build_shuffler(decks))
+        self.cards = shuffle(build_deck(decks), build_shuffler(decks))
       end
+    end
+
+    def deal_card
+      self.cards.pop
     end
 
   private
 
-    def build_decks(deck_count = 1)
+    # correlate items in the unrandom 'decks' array with those in the random 'shuffler' array and sort on random to randomize unrandom.
+    def shuffle(decks, shuffler)
+      return nil if decks.count * 52 != shuffler.count
+
+      hsh = {}
+      index = 0
+      shuffled_deck = []
+
+      # correlate random and unrandom array items via sorted hash
+      decks.each do |deck|
+        deck.each do |k, v|
+          hsh.merge!((shuffler[index]) => {k => v})
+          index += 1
+        end
+      end
+
+      # we are only interested in the previously unrandom data (not the random number correlated earlier)
+      hsh.sort.each do |ary|
+        shuffled_deck << ary[1]
+      end
+
+      shuffled_deck
+    end
+
+    # this method returns an array consisting of deck-ordered cards from 'deck_count' number of decks
+    def build_deck(deck_count = 1)
       arr = []
       for i in 1..deck_count
         deck_hash = {}
@@ -89,7 +119,7 @@ module Blackjack
           val = 0
           ['A','2','3','4','5','6','7','8','9','T','J','Q','K'].each do |face|
             val += 1 unless val == 10
-            deck_hash.merge!({"#{face}#{suit}".to_sym => val})
+            deck_hash.merge!({"#{suit}#{face}".to_sym => val})
           end
         end
         arr << deck_hash
@@ -97,6 +127,7 @@ module Blackjack
       arr
     end
 
+    # this method builds an array of 'random' numbers of length 'deck_count * 52' -- one for every card
     def build_shuffler(deck_count = 1)
       arr = []
 
@@ -107,29 +138,8 @@ module Blackjack
       end
       arr
     end
-
-    def shuffle(decks, shuffler)
-      return nil if decks.count * 52 != shuffler.count
-
-      hsh = {}
-      index = 0
-      shuffled_deck = []
-
-      decks.each do |deck|
-        deck.each do |k, v|
-          # pp "#{k} => #{v}"
-          hsh.merge!((shuffler[index]) => {k => v})
-          index += 1
-        end
-      end
-
-      hsh.sort.each do |ary|
-        shuffled_deck << ary[1]
-      end
-
-      shuffled_deck
-    end
   end
+
 end
 
 player_count  = 3
@@ -138,6 +148,10 @@ deck_count    = 4
 game = Blackjack::Game.new(player_count, deck_count)
 
 table = game.deal
+
+game.table.players.each do |player|
+  p "player's cards: #{player.hand.cards}"
+end
 
 dealer = game.table.dealer.hand
 p "dealer's cards: #{dealer.cards}"
