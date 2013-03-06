@@ -27,6 +27,12 @@ module Blackjack
       end
     end
 
+    def hit(player)
+      return unless player
+
+      player.dealt self.deck.deal_card
+    end
+
   end
 
   class Table
@@ -150,7 +156,10 @@ game = Blackjack::Game.new(player_count, deck_count)
 table = game.deal
 
 game.table.players.each do |player|
-  p "player's cards: #{player.hand.cards}"
+  player.hand.cards.each do |card|
+    p "#{card}"
+    p "#{card.values[0]}"
+  end
 end
 
 dealer = game.table.dealer.hand
