@@ -73,6 +73,25 @@ module Blackjack
     def add(card = {})
       self.cards << card
     end
+
+    def evaluate
+      total = {low: 0, high: 0}
+
+      self.cards.each do |card|
+        value = card.values[0]
+
+        case value
+        when 1
+          total[:low]   += 1
+          total[:high]  += 11
+        else
+          total[:low]   += value
+          total[:high]  += value
+        end
+      end
+
+      total
+    end
   end
 
   class Deck
@@ -153,14 +172,21 @@ deck_count    = 4
 
 game = Blackjack::Game.new(player_count, deck_count)
 
-table = game.deal
+game.deal
+
+game.hit(game.table.players[0])
 
 game.table.players.each do |player|
+  p "---"
   player.hand.cards.each do |card|
     p "#{card}"
     p "#{card.values[0]}"
   end
 end
 
+game.hit(game.table.dealer)
+
 dealer = game.table.dealer.hand
 p "dealer's cards: #{dealer.cards}"
+
+p game.table.dealer.hand.evaluate
